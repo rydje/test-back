@@ -18,23 +18,12 @@ class TemplateManager
     private function computeText($text, array $data)
     {
         $quote = (isset($data['quote']) and $data['quote'] instanceof Quote) ? $data['quote'] : null;
-        $searchTerms = [];
-        $replaceTerms = [];
 
         if ($quote) {
             $quoteItem = QuoteRepository::getInstance()->getById($quote->id);
-            $quoteTokenBase = 'quote';
 
-            foreach (Quote::getTokenList() as $quoteToken)
-            {
-                if (strpos($text, "[$quoteTokenBase:$quoteToken]") !== false) {
-                    $renderedToken = $quoteItem->renderToken($quoteToken);
-                    if (!is_null($renderedToken)) {
-                        $searchTerms[] = "[$quoteTokenBase:$quoteToken]";
-                        $replaceTerms[] = $renderedToken;
-                    }
-                }
-            }
+            $text = $this->replaceTokensInText($text, $quoteItem);
+
         }
 
         if (isset($data['user']) and ($data['user']  instanceof User)) {
@@ -43,19 +32,33 @@ class TemplateManager
             $user = ApplicationContext::getInstance()->getCurrentUser();
         }
 
-        foreach (User::getTokenList() as $userToken)
+        $text = $this->replaceTokensInText($text, $user);
+
+        return $text;
+    }
+
+    private function replaceTokensInText($text, AbstractEntity $entityObject)
+    {
+        $searchTerms = [];
+        $replaceTerms = [];
+        $tokenList = $entityObject::getTokenList();
+        $tokenBase = $entityObject::getTokenBase();
+
+        if (empty($tokenList) || is_null($tokenBase)) {
+            return $text;
+        }
+
+        foreach ($tokenList as $token)
         {
-            $userTokenBase = 'user';
-            if (strpos($text, "[$userTokenBase:$userToken]") !== false) {
-                $renderedToken = $user->renderToken($userToken);
+            if (strpos($text, "[$tokenBase:$token]") !== false) {
+                $renderedToken = $entityObject->renderToken($token);
                 if (!is_null($renderedToken)) {
-                    $searchTerms[] = "[$userTokenBase:$userToken]";
+                    $searchTerms[] = "[$tokenBase:$token]";
                     $replaceTerms[] = $renderedToken;
                 }
             }
         }
 
-        $text = str_replace($searchTerms, $replaceTerms, $text);
-        return $text;
+        return str_replace($searchTerms, $replaceTerms, $text);
     }
 }

@@ -11,6 +11,8 @@ class User extends AbstractEntity
         'first_name',
     ];
 
+    protected static $_tokenBase = 'user';
+
     public function __construct($id, $firstname, $lastname, $email)
     {
         $this->id = $id;

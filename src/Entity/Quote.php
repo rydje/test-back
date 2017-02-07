@@ -15,6 +15,8 @@ class Quote extends AbstractEntity
         'destination_link'
     ];
 
+    protected static $_tokenBase = 'quote';
+
     public function __construct($id, $siteId, $destinationId, $dateQuoted)
     {
         $this->id = $id;

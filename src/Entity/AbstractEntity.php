@@ -3,6 +3,12 @@
 abstract class AbstractEntity
 {
     protected static $_tokenList = [];
+    protected static $_tokenBase = null;
+
+    public static function getTokenBase()
+    {
+        return static::$_tokenBase;
+    }
 
     public static function getTokenList()
     {
