@@ -1,6 +1,8 @@
 <?php
 
+
 require_once __DIR__ . '/../src/Entity/Destination.php';
+require_once __DIR__ . '/../src/Entity/AbstractEntity.php';
 require_once __DIR__ . '/../src/Entity/Quote.php';
 require_once __DIR__ . '/../src/Entity/Site.php';
 require_once __DIR__ . '/../src/Entity/Template.php';
