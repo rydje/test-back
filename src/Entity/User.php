@@ -7,6 +7,10 @@ class User
     public $lastname;
     public $email;
 
+    protected static $_tokenList = [
+        'first_name',
+    ];
+
     public function __construct($id, $firstname, $lastname, $email)
     {
         $this->id = $id;
@@ -14,4 +18,10 @@ class User
         $this->lastname = $lastname;
         $this->email = $email;
     }
+
+    public function renderFirstName()
+    {
+        return ucfirst(mb_strtolower($this->firstname));
+    }
+
 }
