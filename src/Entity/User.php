@@ -1,6 +1,6 @@
 <?php
 
-class User
+class User extends AbstractEntity
 {
     public $id;
     public $firstname;
