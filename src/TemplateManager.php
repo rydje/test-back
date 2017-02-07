@@ -17,57 +17,45 @@ class TemplateManager
 
     private function computeText($text, array $data)
     {
-        $APPLICATION_CONTEXT = ApplicationContext::getInstance();
-
         $quote = (isset($data['quote']) and $data['quote'] instanceof Quote) ? $data['quote'] : null;
+        $searchTerms = [];
+        $replaceTerms = [];
 
-        if ($quote)
+        if ($quote) {
+            $quoteItem = QuoteRepository::getInstance()->getById($quote->id);
+            $quoteTokenBase = 'quote';
+
+            foreach (Quote::getTokenList() as $quoteToken)
+            {
+                if (strpos($text, "[$quoteTokenBase:$quoteToken]") !== false) {
+                    $renderedToken = $quoteItem->renderToken($quoteToken);
+                    if (!is_null($renderedToken)) {
+                        $searchTerms[] = "[$quoteTokenBase:$quoteToken]";
+                        $replaceTerms[] = $renderedToken;
+                    }
+                }
+            }
+        }
+
+        if (isset($data['user']) and ($data['user']  instanceof User)) {
+            $user = $data['user'];
+        } else {
+            $user = ApplicationContext::getInstance()->getCurrentUser();
+        }
+
+        foreach (User::getTokenList() as $userToken)
         {
-            $_quoteFromRepository = QuoteRepository::getInstance()->getById($quote->id);
-            $usefulObject = SiteRepository::getInstance()->getById($quote->siteId);
-            $destinationOfQuote = DestinationRepository::getInstance()->getById($quote->destinationId);
-
-            if(strpos($text, '[quote:destination_link]') !== false){
-                $destination = DestinationRepository::getInstance()->getById($quote->destinationId);
-            }
-
-            $containsSummaryHtml = strpos($text, '[quote:summary_html]');
-            $containsSummary     = strpos($text, '[quote:summary]');
-
-            if ($containsSummaryHtml !== false || $containsSummary !== false) {
-                if ($containsSummaryHtml !== false) {
-                    $text = str_replace(
-                        '[quote:summary_html]',
-                        Quote::renderHtml($_quoteFromRepository),
-                        $text
-                    );
-                }
-                if ($containsSummary !== false) {
-                    $text = str_replace(
-                        '[quote:summary]',
-                        Quote::renderText($_quoteFromRepository),
-                        $text
-                    );
+            $userTokenBase = 'user';
+            if (strpos($text, "[$userTokenBase:$userToken]") !== false) {
+                $renderedToken = $user->renderToken($userToken);
+                if (!is_null($renderedToken)) {
+                    $searchTerms[] = "[$userTokenBase:$userToken]";
+                    $replaceTerms[] = $renderedToken;
                 }
             }
-
-            (strpos($text, '[quote:destination_name]') !== false) and $text = str_replace('[quote:destination_name]',$destinationOfQuote->countryName,$text);
         }
 
-        if (isset($destination))
-            $text = str_replace('[quote:destination_link]', $usefulObject->url . '/' . $destination->countryName . '/quote/' . $_quoteFromRepository->id, $text);
-        else
-            $text = str_replace('[quote:destination_link]', '', $text);
-
-        /*
-         * USER
-         * [user:*]
-         */
-        $_user  = (isset($data['user'])  and ($data['user']  instanceof User))  ? $data['user']  : $APPLICATION_CONTEXT->getCurrentUser();
-        if($_user) {
-            (strpos($text, '[user:first_name]') !== false) and $text = str_replace('[user:first_name]'       , ucfirst(mb_strtolower($_user->firstname)), $text);
-        }
-
+        $text = str_replace($searchTerms, $replaceTerms, $text);
         return $text;
     }
 }
