@@ -13,7 +13,7 @@ abstract class AbstractEntity
     {
         if (in_array($token, static::$_tokenList)) {
             $tokenRenderMethod = 'render' . str_replace(' ', '', ucwords(str_replace('_', ' ', $token)));
-            $result = $tokenRenderMethod();
+            $result = $this->{$tokenRenderMethod}();
         } else {
             // Log notice: token $token is not declared in the get_class($this) token list.
             $result = null;
